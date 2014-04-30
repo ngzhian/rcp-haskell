@@ -47,6 +47,16 @@ main :: IO ()
 main = do
   putStrLn welcomeMessage
   putStrLn instructions
+  game
+
+game :: IO ()
+game = do
   putStrLn prompt
   userMove <- convertToMove <$> getLine
   putStrLn $ announceWinner $ getWinner userMove makeAIMove
+  putStrLn "continue? Y/N"
+  choice <- getLine
+  continue choice
+    where continue "y" = game
+          continue "n" = do putStrLn "Thanks for playing!"
+  
