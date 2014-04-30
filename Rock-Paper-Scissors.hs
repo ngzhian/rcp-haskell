@@ -1,6 +1,8 @@
 module Main where
 
 import Control.Applicative
+import Data.Char
+import Data.List as L
 
 type Result = Bool
 
@@ -17,38 +19,34 @@ instructions = "R for rock, P for paper, S for scissors."
 prompt :: String
 prompt = "What's your move?"
 
-stringToMove :: String -> Move
-stringToMove "r" = Rock
-stringToMove "p" = Paper
-stringToMove "s" = Scissors
-stringToMove _   = Rock
+convertToMove :: String -> Move
+convertToMove input = convert $ L.map toLower input
+  where convert "r" = Rock
+        convert "s" = Scissors
+        convert "p" = Paper
 
 getWinner :: Move -> Move -> Winner
-getWinner Rock Paper     = AI
-getWinner Rock Scissors  = Player
-getWinner Paper Scissors = AI
-getWinner Paper Rock     = Player
-getWinner Scissors Rock  = AI
-getWinner Scissors Paper = Player
-getWinner _        _     = Draw
+getWinner user ai = getWinner' user ai
+  where getWinner' Rock Paper     = AI
+        getWinner' Rock Scissors  = Player
+        getWinner' Paper Scissors = AI
+        getWinner' Paper Rock     = Player
+        getWinner' Scissors Rock  = AI
+        getWinner' Scissors Paper = Player
+        getWinner' _        _     = Draw
 
-announceWinner :: Winner -> IO ()
-announceWinner Draw = putStrLn "It was a draw!"
-announceWinner Player = putStrLn "Yay you won!"
-announceWinner AI = putStrLn "The AI won :)"
+announceWinner :: Winner -> String
+announceWinner Draw   = "It was a draw!"
+announceWinner Player = "Yay you won!"
+announceWinner AI     = "The AI won :)"
 
 makeAIMove :: Move
 makeAIMove = Paper
 
-turn :: Move -> Result
-turn = undefined
-
 main :: IO ()
 main = do
-         putStrLn welcomeMessage
-         putStrLn instructions
-         putStrLn prompt
-         userMove <- stringToMove <$> getLine
-         let winner = getWinner userMove makeAIMove
-             in announceWinner winner
-         putStrLn "hey"
+  putStrLn welcomeMessage
+  putStrLn instructions
+  putStrLn prompt
+  userMove <- convertToMove <$> getLine
+  putStrLn $ announceWinner $ getWinner userMove makeAIMove
