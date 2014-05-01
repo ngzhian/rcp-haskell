@@ -7,6 +7,7 @@ import Data.Char
 -- Player or AI can make any of these moves each turn
 data Move = Rock | Paper | Scissors deriving (Show)
 
+-- Player is the current person playing, and AI is our intelligent program!
 data Winner = Player | AI | Draw deriving (Show)
 
 -- use a throwaway function getWinner' because
@@ -26,59 +27,53 @@ makeAIMove = Paper
 {- END Logic for this game -}
 
 {- UI/Interaction for the game -}
--- Message to user when the user first runs this program
-welcomeMessage :: String
-welcomeMessage = "Lets play Rock Paper Scissors"
-
--- Instructions on ohw to play this game
-instructions :: String
-instructions = "R for rock, P for paper, S for scissors."
-
--- A prompt for the user's input
-prompt :: String
-prompt = "What's your move?"
 
 -- handle invalid cases
-convertToMove :: String -> Maybe Move
+convertToMove :: String -> Either String Move
 convertToMove input = convert $ map toLower input
-  where convert "r" = Just Rock
-        convert "s" = Just Scissors
-        convert "p" = Just Paper
-        convert _   = Nothing
+  where convert "r" = Right Rock
+        convert "s" = Right Scissors
+        convert "p" = Right Paper
+        convert _   = Left "I don't know that move!"
 
 -- Gives the correct anouncement String for different outcomes of the game
 announceWinner :: Winner -> String
+announceWinner AI     = "The AI won :)"
 announceWinner Draw   = "It was a draw!"
 announceWinner Player = "Yay you won!"
-announceWinner AI     = "The AI won :)"
 
 badMove :: String
-badMove = "Unknown move! " ++ instructions
+badMove = "Unknown move! " ++ "R for rock, P for paper, S for scissors."
 {- END UI/Interaction for the game -}
+
+getResponse :: String -> IO String
+getResponse s = putStrLn s >> getLine
 
 getValidMove :: IO Move
 getValidMove = do
-  putStrLn prompt
-  userMove <- convertToMove <$> getLine
+  userMove <- convertToMove <$> getResponse "What's your move?"
   case userMove of
-    Nothing -> do putStrLn badMove; getValidMove
-    Just m  -> return m
-  
+    Left msg -> do
+      putStrLn msg
+      putStrLn "R for rock, P for paper, S for scissors."
+      getValidMove
+    Right m  -> return m
 
 game :: IO ()
 game = do
   userMove <- getValidMove
-  putStrLn $ play userMove makeAIMove
-  putStrLn "continue? Y/N"
-  choice <- getLine
+  play userMove makeAIMove
+  choice <- getResponse "Continue? Y/N"
   continue choice
-    where play m ai = announceWinner $ getWinner m ai
+    where play m ai = putStrLn $ announceWinner $ getWinner m ai
           continue "y" = game
-          continue "n" = do putStrLn "Thanks for playing!"
+          continue _ = do putStrLn "Thanks for playing!"
 
 main :: IO ()
 main = do
-  putStrLn welcomeMessage
-  putStrLn instructions
+  -- Message to user when the user first runs this program
+  putStrLn "Lets play Rock Paper Scissors"
+  -- Instructions on ohw to play this game
+  putStrLn "R for rock, P for paper, S for scissors."
   game
   
